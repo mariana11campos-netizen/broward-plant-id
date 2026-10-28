@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Broward Plant ID</title>
+<meta name="description" content="A Raspberry Pi, a webcam and AlexNet that tell native Broward County plants from invasive ones.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=Public+Sans:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">Broward Plant ID</a>
+    <nav aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#species">Species</a>
+      <a href="#lookalikes">Lookalikes</a>
+      <a href="#results">Results</a>
+      <a href="#build">Build one</a>
+      <a href="https://github.com/Nick-48-85/broward-plant-id">Code</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Raspberry Pi · webcam · AlexNet · Broward County, FL</p>
+        <h1>Is it <span class="n">native</span> or <span class="i">invasive</span>?</h1>
+        <p class="lede">Point a webcam at a plant and a Raspberry Pi tells you what it is, whether it belongs in
+          South Florida, and how to double-check. Built on AlexNet, retrained on 25 plants you
+          actually run into in Broward County yards, parks and canal banks.</p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/Nick-48-85/broward-plant-id">View the code</a>
+          <a class="btn" href="#build">Build your own</a>
+        </div>
+      </div>
+      <div class="term" role="img" title="Example output" aria-label="Example output from identify.py identifying Brazilian pepper as invasive">
+<pre><span class="prompt">pi@plantid:~ $</span> python identify.py
+Point the camera at a plant and press Enter...
+<span class="bad">INVASIVE</span> Brazilian pepper (Schinus terebinthifolia)  91%  FISC Category I
+  How to check: Compound leaves with 3 to 13 leaflets on a
+  reddish, often winged stalk. Crushed leaves smell like
+  turpentine or pepper. Bright red berries in winter.
+  Next step: confirm the ID, then report it at
+  eddmaps.org/florida or ask UF/IFAS Broward Extension.
+  <span class="dim">Also possible: Carrotwood 5%, Cocoplum 2%</span>
+
+Point the camera at a plant and press Enter...
+<span class="good">NATIVE</span>   Firebush (Hamelia patens)  88%
+  <span class="dim">Also possible: Wild coffee 6%, Beautyberry 3%</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <p class="prose">AlexNet is the convolutional neural network that won the 2012 ImageNet challenge. It already
+        knows how to see edges, veins, leaf shapes and textures from 1.2 million everyday photos. This
+        project keeps those layers and retrains only the last part of the network to name Broward plants,
+        which is why a few hundred photos per species is enough and why it can run on a Raspberry Pi.</p>
+      <ol class="steps">
+        <li>
+          <h3>Collect photos</h3>
+          <p><code>fetch_photos.py</code> downloads research-grade, Creative Commons photos from iNaturalist,
+            Broward County first, then the rest of Florida. <code>collect.py</code> adds your own webcam shots.</p>
+        </li>
+        <li>
+          <h3>Fine-tune AlexNet</h3>
+          <p><code>train.py</code> freezes AlexNet's convolutional layers, retrains its classifier on the
+            25 species, balances rare and common plants, and keeps the best epoch.</p>
+        </li>
+        <li>
+          <h3>Snap a plant</h3>
+          <p><code>identify.py</code> grabs a webcam frame on the Pi, resizes it to 224 × 224 and runs it
+            through the network in about a second.</p>
+        </li>
+        <li>
+          <h3>Native or invasive</h3>
+          <p>It prints the species, its status and FISC category, ID tips to confirm by hand, and a
+            lookalike warning. Low-confidence guesses say UNSURE instead.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="species">
+    <div class="wrap">
+      <h2>The 25 plants it knows</h2>
+      <p class="prose">A starter list of plants common in Broward County. Invasive species come from the
+        Florida Invasive Species Council (FISC) list: Category I plants are already disrupting native plant
+        communities, Category II plants are spreading but haven't yet. Edit
+        <code>docs/species.json</code> to add more; the website and the model both read it.</p>
+      <div class="filters" role="group" aria-label="Filter species">
+        <button type="button" data-filter="all" aria-pressed="true">All <span data-count="all"></span></button>
+        <button type="button" data-filter="native" aria-pressed="false">Native <span data-count="native"></span></button>
+        <button type="button" data-filter="invasive" aria-pressed="false">Invasive <span data-count="invasive"></span></button>
+      </div>
+      <div class="grid" id="species-grid">
+        <p class="pending">Loading the species list…</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="lookalikes">
+    <div class="wrap">
+      <h2>Lookalikes to watch</h2>
+      <p class="prose">Some invasives have a native twin. These are the pairs most likely to fool the model
+        and people, so the Pi prints a warning and the tell-tale difference whenever it sees either one.</p>
+      <div class="pairs" id="pairs"></div>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="wrap">
+      <h2>Results</h2>
+      <div id="results-body">
+        <p class="pending">Not trained yet. After running <code>python train.py --site</code>, commit
+          <code>docs/results.json</code> and this section fills in with accuracy per species and the most
+          common mix-ups.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="build">
+    <div class="wrap">
+      <h2>Build one</h2>
+      <div class="cols">
+        <div>
+          <h3>Parts</h3>
+          <ul class="plain">
+            <li>Raspberry Pi 4 (4 GB or more) or Pi 5, with 64-bit Raspberry Pi OS</li>
+            <li>microSD card, 32 GB or larger</li>
+            <li>USB webcam, ideally autofocus (Logitech C920 or similar) for close-up leaves</li>
+            <li>Official Pi power supply, or a USB-C power bank for field use</li>
+            <li>A laptop or desktop for downloading photos and training (much faster than the Pi)</li>
+          </ul>
+          <h3 style="margin-top:1.5rem">Tips for good photos</h3>
+          <ul class="plain">
+            <li>Fill the frame with leaves, flowers or fruit, not sky or pavement.</li>
+            <li>Shoot in shade or on overcast days; harsh sun washes out leaf color.</li>
+            <li>Take 20 to 50 of your own webcam photos per species. They help more than extra internet photos.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Commands</h3>
+          <p>On a laptop, download photos and train:</p>
+<pre class="cmd">pip install -r requirements.txt
+python fetch_photos.py --other 300
+python train.py --epochs 15 --site</pre>
+          <p>On the Pi, set up once, copy the model over, then identify:</p>
+<pre class="cmd">bash setup_pi.sh && sudo reboot
+scp models/alexnet_plants.pt pi@plantid.local:~/broward-plant-id/models/
+source venv/bin/activate
+python identify.py</pre>
+          <p>Full instructions are in the <a href="https://github.com/Nick-48-85/broward-plant-id#readme">README</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="limits">
+    <div class="wrap"><div class="prose">
+      <h2>What it can't do</h2>
+      <ul class="limits">
+        <li><strong>It only knows the 25 plants on its list.</strong> Anything else gets forced into the closest
+          match, unless you train the optional "other" class from random Broward plants.</li>
+        <li><strong>Some differences are invisible to a camera.</strong> Native Boston fern and invasive tuberous
+          sword fern differ mostly by tubers on the roots. Treat those results as "check the roots".</li>
+        <li><strong>It's a helper, not an authority.</strong> Confirm an ID before removing anything, and never
+          remove plants on public or protected land without permission. UF/IFAS Broward County Extension can confirm IDs.</li>
+      </ul>
+    </div></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Sources for the species list:</p>
+    <ul id="sources">
+      <li><a href="https://floridainvasivespecies.org/plantlist.cfm">Florida Invasive Species Council plant list</a></li>
+      <li><a href="https://assessment.ifas.ufl.edu/">UF/IFAS Assessment of Non-native Plants</a></li>
+      <li><a href="https://regionalconservation.org/beta/nfyn/">Institute for Regional Conservation, Natives for Your Neighborhood</a></li>
+      <li><a href="https://florida.plantatlas.usf.edu/">Atlas of Florida Plants</a></li>
+    </ul>
+    <p>Training photos come from <a href="https://www.inaturalist.org/">iNaturalist</a> observers under Creative
+      Commons licenses; credits for every photo are kept in <code>data/attributions.csv</code>.</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

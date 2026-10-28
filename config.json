@@ -1,0 +1,25 @@
+{
+  "species_file": "docs/species.json",
+
+  "camera": {
+    "device_index": 0,
+    "width": 1280,
+    "height": 720,
+    "warmup_frames": 10
+  },
+
+  "photos": {
+    "place": "Broward County",
+    "fallback_place": "Florida",
+    "per_species": 150,
+    "licenses": ["cc0", "cc-by", "cc-by-nc"]
+  },
+
+  "model": {
+    "weights_path": "models/alexnet_plants.pt",
+    "min_confidence": 0.55,
+    "top_k": 3
+  },
+
+  "log_path": "data/log.csv"
+}

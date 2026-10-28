@@ -1,0 +1,9 @@
+# Camera + images
+opencv-python-headless
+pillow
+numpy
+# Photo download (fetch_photos.py)
+requests
+# AlexNet (on a 64-bit Pi OS, pip installs CPU wheels)
+torch
+torchvision
