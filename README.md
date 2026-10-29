@@ -11,7 +11,7 @@ INVASIVE Brazilian pepper (Schinus terebinthifolia)  91%  FISC Category I
   Also possible: Carrotwood 5%, Cocoplum 2%
 ```
 
-Project website: https://nick-48-85.github.io/broward-plant-id/ (served from `docs/`).
+Project website: https://mariana11campos-netizen.github.io/broward-plant-id/ (served from `docs/`).
 
 ## How it works
 
